@@ -1,19 +1,32 @@
-import {useState, useEffect} from 'react'
-import { StyleSheet, View, Text } from 'react-native';
-import Mapbox from 'rnmapbox/maps';
+import { useEffect, useState, useRef } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View, PermissionsAndroid } from 'react-native';
+import Mapbox from '@rnmapbox/maps';
 
 Mapbox.setAccessToken('pk.eyJ1IjoiYnVuZ2FtYm9obGFoIiwiYSI6ImNsbjkzOHc1dDAzNm4ya253aXh6a2tjbG8ifQ.iwEYr3cMfHciuU4LUuu9aw');
-export default function App() {
-  const [mb, setMb] = useState(null)
+
+const App = () => {
+  const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+    Mapbox.setTelemetryEnabled(false);
+    Mapbox.requestAndroidLocationPermissions();
+  }, [])
 
   return (
-   <View style={styles.page}>
+    <View style={styles.page}>
+      <StatusBar backgroundColor="blue" />
       <View style={styles.container}>
-        {mb ? (<mb.MapView style={styles.map} />) : null}
+        <Mapbox.MapView style={styles.map} >
+          <Mapbox.UserLocation onUpdate={(newLocation) => setLocation(newLocation)} />
+          <Mapbox.Camera followUserLocation followZoomLevel={16} />
+        </Mapbox.MapView>
       </View>
     </View>
   );
 }
+
+export default App;
 
 const styles = StyleSheet.create({
   page: {
@@ -22,11 +35,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    height: 300,
-    width: 300,
+    height: '100%',
+    width: '100%',
   },
   map: {
     flex: 1
   }
 });
-
