@@ -1,44 +1,81 @@
-import { useEffect, useState, useRef } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, PermissionsAndroid } from 'react-native';
-import Mapbox from '@rnmapbox/maps';
+import React, { useEffect, useState, useRef } from "react";
+import { StatusBar } from "expo-status-bar";
+import { View, Text, StyleSheet } from "react-native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Mapbox from "@rnmapbox/maps";
+import FAB from "./src/components/FAB";
 
-Mapbox.setAccessToken('pk.eyJ1IjoiYnVuZ2FtYm9obGFoIiwiYSI6ImNsbjkzOHc1dDAzNm4ya253aXh6a2tjbG8ifQ.iwEYr3cMfHciuU4LUuu9aw');
+Mapbox.setAccessToken(
+  "pk.eyJ1IjoiYnVuZ2FtYm9obGFoIiwiYSI6ImNsbjkzOHc1dDAzNm4ya253aXh6a2tjbG8ifQ.iwEYr3cMfHciuU4LUuu9aw",
+);
+const DEFAULT_CENTER_COORDINATE = [112.74795609717692, -7.263394274153487];
 
 const App = () => {
   const [location, setLocation] = useState(null);
+  const [permission, setPermission] = useState(false);
+  const camera = useRef(null);
 
   useEffect(() => {
     Mapbox.setTelemetryEnabled(false);
-    Mapbox.requestAndroidLocationPermissions();
-  }, [])
+    Mapbox.requestAndroidLocationPermissions().then((access) => {
+      if (access) setPermission(access);
+    });
+    camera.current?.setCamera({
+      centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
+    });
+  }, []);
+
+  useEffect(() => {
+    camera.current?.setCamera({
+      centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
+      zoomLevel: 16,
+    });
+  }, [location]);
 
   return (
-    <View style={styles.page}>
+    <View className="flex justify-center items-center">
       <StatusBar backgroundColor="blue" />
-      <View style={styles.container}>
-        <Mapbox.MapView style={styles.map} >
-          <Mapbox.UserLocation onUpdate={(newLocation) => setLocation(newLocation)} />
-          <Mapbox.Camera followUserLocation followZoomLevel={16} />
-        </Mapbox.MapView>
+      <View className="w-full h-full">
+        {permission ? (
+          <>
+            <Mapbox.MapView style={styles.map}>
+              <Mapbox.UserLocation
+                onUpdate={(newLocation) => setLocation(newLocation)}
+                showsUserHeadingIndicator={true}
+                minDisplacement={5}
+              />
+              <Mapbox.Camera
+                ref={camera}
+                centerCoordinate={DEFAULT_CENTER_COORDINATE}
+                zoomLevel={16}
+              />
+            </Mapbox.MapView>
+            <FAB
+              onPress={() => {
+                // setLocation({ coords: { latitude: 0, longitude: 0 } });
+                camera.current?.setCamera({
+                  centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
+                  zoomLevel: 16,
+                  animationDuration: 1000,
+                  animationMode: "flyTo",
+                });
+              }}
+            >
+              <MaterialIcons name="my-location" size={38} color="white" />
+            </FAB>
+          </>
+        ) : (
+          <Text>Please, enable location permissions</Text>
+        )}
       </View>
     </View>
   );
-}
-
-export default App;
+};
 
 const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    height: '100%',
-    width: '100%',
-  },
   map: {
-    flex: 1
-  }
+    flex: 1,
+  },
 });
+
+export default App;
