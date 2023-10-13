@@ -1,7 +1,9 @@
 {
+  "scheme": "odp-scheme",
   "expo": {
     "name": "ODPMaps",
     "slug": "ODPMaps",
+    "scheme": "odp-scheme",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,9 +13,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
@@ -39,7 +39,8 @@
           "RNMapboxMapsImpl": "mapbox",
           "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiYnVuZ2FtYm9obGFoIiwiYSI6ImNsbmQ2a3QwYTAybXIybHFwMHkwZ3ZoMWEifQ.NMEWhP818aumWgO0pAIOng"
         }
-      ]
+      ],
+      "expo-router"
     ],
     "extra": {
       "eas": {
