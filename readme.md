@@ -10,6 +10,7 @@ This is a android application to display all existed ODP points in the android m
   - [Development Setup](#development-setup)
   - [Features](#features)
     - [Rule Authorization](#rule-authorization)
+  - [Preview on Expo](#preview-on-expo)
 
 ## Development Dependencies
 
@@ -48,3 +49,7 @@ warna Marker:
 - admin bisa semua fitur
 - user bisa lihat dan edit informasi dan table
 - admin: bisa menambah user credentials
+
+## Preview on Expo
+
+Visit to [expo build link](https://expo.dev/accounts/bungambohlah/projects/ODPMaps/builds/b67aadd0-ff1c-4a45-9036-91fe33e442e9) to install "preview" APK on your device.
