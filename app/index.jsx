@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef, Fragment } from "react";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Mapbox from "@rnmapbox/maps";
-import FAB from "./src/components/FAB";
+import FAB from "../components/FAB";
 
 Mapbox.setAccessToken(
   "pk.eyJ1IjoiYnVuZ2FtYm9obGFoIiwiYSI6ImNsbjkzOHc1dDAzNm4ya253aXh6a2tjbG8ifQ.iwEYr3cMfHciuU4LUuu9aw",
@@ -100,55 +101,62 @@ const App = () => {
   }, [location, annotationsLoading]);
 
   return (
-    <View className="flex justify-center items-center">
-      <StatusBar backgroundColor="blue" />
-      <View className="w-full h-full">
-        {permission ? (
-          <>
-            <Mapbox.MapView style={styles.map}>
-              <Mapbox.UserLocation
-                onUpdate={(newLocation) => setLocation(newLocation)}
-                showsUserHeadingIndicator={true}
-                minDisplacement={5}
-              />
-              <Mapbox.Camera
-                ref={camera}
-                centerCoordinate={DEFAULT_CENTER_COORDINATE}
-                zoomLevel={16}
-              />
-              {Object.entries(annotations)?.map(([name, coords], idx) => (
-                <Fragment key={idx}>
-                  {Array.isArray(coords) && coords.length ? (
-                    <Mapbox.PointAnnotation
-                      key={idx}
-                      id={`odp-${idx}`}
-                      coordinate={coords}
-                      title={name}
-                      selected
-                    />
-                  ) : null}
-                </Fragment>
-              ))}
-            </Mapbox.MapView>
-            <FAB
-              onPress={() => {
-                // setLocation({ coords: { latitude: 0, longitude: 0 } });
-                camera.current?.setCamera({
-                  centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
-                  zoomLevel: 16,
-                  animationDuration: 1000,
-                  animationMode: "flyTo",
-                });
-              }}
-            >
-              <MaterialIcons name="my-location" size={38} color="white" />
-            </FAB>
-          </>
-        ) : (
-          <Text>Please, enable location permissions</Text>
-        )}
+    <>
+      <Stack.Screen
+        options={{
+          title: "Welcome",
+        }}
+      />
+      <View className="flex items-center justify-center">
+        <StatusBar backgroundColor="blue" />
+        <View className="w-full h-full">
+          {permission ? (
+            <>
+              <Mapbox.MapView style={styles.map}>
+                <Mapbox.UserLocation
+                  onUpdate={(newLocation) => setLocation(newLocation)}
+                  showsUserHeadingIndicator={true}
+                  minDisplacement={5}
+                />
+                <Mapbox.Camera
+                  ref={camera}
+                  centerCoordinate={DEFAULT_CENTER_COORDINATE}
+                  zoomLevel={16}
+                />
+                {Object.entries(annotations)?.map(([name, coords], idx) => (
+                  <Fragment key={idx}>
+                    {Array.isArray(coords) && coords.length ? (
+                      <Mapbox.PointAnnotation
+                        key={idx}
+                        id={`odp-${idx}`}
+                        coordinate={coords}
+                        title={name}
+                        selected
+                      />
+                    ) : null}
+                  </Fragment>
+                ))}
+              </Mapbox.MapView>
+              <FAB
+                onPress={() => {
+                  // setLocation({ coords: { latitude: 0, longitude: 0 } });
+                  camera.current?.setCamera({
+                    centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
+                    zoomLevel: 16,
+                    animationDuration: 1000,
+                    animationMode: "flyTo",
+                  });
+                }}
+              >
+                <MaterialIcons name="my-location" size={38} color="white" />
+              </FAB>
+            </>
+          ) : (
+            <Text>Please, enable location permissions</Text>
+          )}
+        </View>
       </View>
-    </View>
+    </>
   );
 };
 
