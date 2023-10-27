@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, Fragment } from "react";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -132,6 +132,12 @@ const App = () => {
                         coordinate={coords}
                         title={name}
                         selected
+                        onSelected={() => {
+                          router.push({
+                            params: { name },
+                            pathname: "/details/information",
+                          });
+                        }}
                       />
                     ) : null}
                   </Fragment>
