@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, Fragment } from "react";
-import { Stack, router } from "expo-router";
+import { Stack, router, useGlobalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -15,19 +15,13 @@ const UPSTASH_TOKEN =
 const DEFAULT_CENTER_COORDINATE = [112.74795609717692, -7.263394274153487];
 
 const App = () => {
+  const { name } = useGlobalSearchParams();
   const [location, setLocation] = useState(null);
   const [permission, setPermission] = useState(false);
   const [annotations, setAnnotations] = useState({});
   const [annotationsLoading, setAnnotationsLoading] = useState(false);
   const camera = useRef(null);
 
-  const setAnnotationNamesAPI = async () => {
-    await fetch(`${UPSTASH_URL}/set/locationNames/["ODP1"]`, {
-      headers: {
-        Authorization: `Bearer ${UPSTASH_TOKEN}`,
-      },
-    });
-  };
   const getAnnotationNamesAPI = async () => {
     const response = await fetch(`${UPSTASH_URL}/get/locationNames`, {
       headers: {
@@ -92,13 +86,18 @@ const App = () => {
 
     if (!annotationsLoading && location) {
       setAnnotationsLoading(true);
-      setAnnotationNamesAPI()
-        .then(() => getAnnotationNamesAPI())
+      getAnnotationNamesAPI()
         .then((reducedLocationNames) => setAnnotationsAPI(reducedLocationNames))
         .then((reducedLocationNames) => getAnnotationsAPI(reducedLocationNames))
         .catch((err) => console.error(err));
     }
   }, [location, annotationsLoading]);
+
+  useEffect(() => {
+    if (name) {
+      setAnnotationsLoading(false);
+    }
+  }, [name]);
 
   return (
     <>
