@@ -4,8 +4,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import { Button, Dialog, Portal, TextInput } from "react-native-paper";
 import { useEffect, useState } from "react";
-// import * as Crypto from "expo-crypto";
-// import { useAssets } from "expo-asset";
+import * as Crypto from "expo-crypto";
+import { useAssets } from "expo-asset";
 import { useSession } from "../hooks/ctx";
 
 const blurhash =
@@ -23,7 +23,7 @@ export default function SignIn() {
   const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState("");
 
-  // const [assets, error] = useAssets([require("../assets/biznet_vertical_logo.png")]);
+  const [assets, error] = useAssets([require("../assets/biznet_vertical_logo.png")]);
 
   async function GetUserCreds() {
     const response = await fetch(`${UPSTASH_URL}/get/UserCreds`, {
@@ -44,9 +44,8 @@ export default function SignIn() {
   async function handleSubmit() {
     try {
       setIsLoading(true);
-      // const digest = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pass);
-      // console.log(digest);
-      console.log(userCreds);
+      const digest = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pass);
+      console.log(digest);
       if (userCreds[username] === pass) {
         signIn();
         // Navigate after signing in. You may want to tweak this to ensure sign-in is
@@ -75,7 +74,7 @@ export default function SignIn() {
     <LinearGradient colors={["#eef0f5", "#d7e1f2", "#b9cae8"]}>
       <View className="flex items-center justify-center w-full h-full">
         <View className="flex items-center justify-center w-full gap-4">
-          {/* <Image source={logo} placeholder={blurhash} contentFit="cover" transition={1000} /> */}
+          <Image source={logo} placeholder={blurhash} contentFit="cover" transition={1000} />
           <Text className="font-bold text-2xl text-[#232175] w-1/2 text-center ml-10">
             ODP Maps
           </Text>
