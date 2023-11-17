@@ -45,12 +45,11 @@ export default function SignIn() {
     try {
       setIsLoading(true);
       const digest = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, pass);
-      console.log(digest);
-      if (userCreds[username] === pass) {
-        signIn();
+      if (userCreds[username] === digest) {
+        signIn(username);
         // Navigate after signing in. You may want to tweak this to ensure sign-in is
         // successful before navigating.
-        router.replace("/");
+        setTimeout(() => router.replace("/"), 500);
       } else if (userCreds[username] !== pass) {
         setMessage("Invalid username or password");
         setVisible(true);
@@ -74,7 +73,15 @@ export default function SignIn() {
     <LinearGradient colors={["#eef0f5", "#d7e1f2", "#b9cae8"]}>
       <View className="flex items-center justify-center w-full h-full">
         <View className="flex items-center justify-center w-full gap-4">
-          <Image source={logo} placeholder={blurhash} contentFit="cover" transition={1000} />
+          {assets ? (
+            <Image
+              style={{ width: "90%", height: 300 }}
+              source={{ uri: assets[0].uri }}
+              placeholder={blurhash}
+              contentFit="contain"
+              transition={500}
+            />
+          ) : null}
           <Text className="font-bold text-2xl text-[#232175] w-1/2 text-center ml-10">
             ODP Maps
           </Text>
@@ -90,6 +97,7 @@ export default function SignIn() {
             onChangeText={(text) => setUsername(text)}
           />
           <TextInput
+            secureTextEntry
             mode="outlined"
             cursorColor="black"
             outlineColor="black"
@@ -102,6 +110,7 @@ export default function SignIn() {
           />
         </View>
         <Button
+          disabled={isLoading}
           loading={isLoading}
           buttonColor="black"
           textColor="white"
