@@ -52,4 +52,4 @@ warna Marker:
 
 ## Preview on Expo
 
-Visit to [expo build link](https://expo.dev/accounts/bungambohlah/projects/ODPMaps/builds/3ad8eeb6-3ae1-4643-b3d3-c4cd28010373) to install "preview" APK on your device.
+Visit to [expo build link](https://expo.dev/accounts/bungambohlah/projects/ODPMaps/builds/4e310de3-fb47-4da1-ae4b-02b5b99004a9) to install "preview" APK on your device.
