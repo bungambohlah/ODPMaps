@@ -4,7 +4,9 @@ import { StatusBar } from "expo-status-bar";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Mapbox from "@rnmapbox/maps";
-import FAB from "../components/FAB";
+import { Appbar, Menu } from "react-native-paper";
+import FAB from "../../components/FAB";
+import { useSession } from "../../hooks/ctx";
 
 Mapbox.setAccessToken(
   "pk.eyJ1IjoiYnVuZ2FtYm9obGFoIiwiYSI6ImNsbjkzOHc1dDAzNm4ya253aXh6a2tjbG8ifQ.iwEYr3cMfHciuU4LUuu9aw",
@@ -20,7 +22,13 @@ const App = () => {
   const [permission, setPermission] = useState(false);
   const [annotations, setAnnotations] = useState({});
   const [annotationsLoading, setAnnotationsLoading] = useState(false);
+  const [moreMenuVisible, setMoreMenuVisible] = useState(false);
   const camera = useRef(null);
+  const { signOut } = useSession();
+
+  function _handleMore() {
+    setMoreMenuVisible(!moreMenuVisible);
+  }
 
   const getAnnotationNamesAPI = async () => {
     const response = await fetch(`${UPSTASH_URL}/get/locationNames`, {
@@ -104,6 +112,25 @@ const App = () => {
       <Stack.Screen
         options={{
           title: "Welcome",
+          headerRight: () => (
+            <Menu
+              visible={moreMenuVisible}
+              onDismiss={_handleMore}
+              anchor={
+                <Appbar.Action
+                  icon="dots-vertical"
+                  onPress={_handleMore}
+                  style={{ display: "flex", width: "100%" }}
+                />
+              }
+              anchorPosition="bottom"
+              contentStyle={{
+                backgroundColor: "white",
+              }}
+            >
+              <Menu.Item title="Logout" onPress={() => signOut()} />
+            </Menu>
+          ),
         }}
       />
       <View className="flex items-center justify-center">

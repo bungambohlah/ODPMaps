@@ -33,6 +33,7 @@ function Page() {
           },
         });
         const data = await response.json();
+        if (!data.result) return;
         const resultData = JSON.parse(data.result || "");
         const formattedData = resultData.replaceAll("<enter>", "\n");
         setInformation(formattedData);
