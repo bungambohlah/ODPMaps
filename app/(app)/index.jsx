@@ -161,7 +161,7 @@ const App = () => {
                         onSelected={() => {
                           router.push({
                             params: { name },
-                            pathname: "/details/information",
+                            pathname: "/details",
                           });
                         }}
                       />

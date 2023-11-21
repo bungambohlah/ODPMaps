@@ -13,19 +13,40 @@ export default function RootLayout() {
     setMoreMenuVisible(!moreMenuVisible);
   }
 
-  function renderEditIcon() {
+  function renderDynamicOptions() {
     const routes = navigation.getState?.().routes || [];
     const indexStack = navigation.getState?.().index;
     if (typeof indexStack !== "number") return;
 
-    const tabIndex = routes[navigation.getState?.().index].state?.index || 0;
+    const pageIndex = routes[navigation.getState?.().index].state?.index || 0;
+    const selectedPage =
+      (routes[navigation.getState?.().index].state.routes &&
+        routes[navigation.getState?.().index].state.routes[pageIndex]) ||
+      [];
+    const tabIndex = selectedPage?.state?.index || 0;
+
+    // render edit ODP Information
+    if (tabIndex === 0) {
+      return (
+        <Menu.Item
+          onPress={() => {
+            _handleMore();
+            router.push({ pathname: "/(app)/edit/edit-information", params: { name } });
+          }}
+          title={`Edit ODP ${name}`}
+        />
+      );
+    }
+
+    // render add ODP User
     if (tabIndex === 1) {
       return (
         <Menu.Item
-          onPress={() =>
-            router.push({ pathname: "/(app)/edit/edit-information", params: { name } })
-          }
-          title={`Edit ODP ${name}`}
+          onPress={() => {
+            _handleMore();
+            router.push({ pathname: "/(app)/edit/add-user", params: { name } });
+          }}
+          title={`Add User to ODP ${name}`}
         />
       );
     }
@@ -47,7 +68,7 @@ export default function RootLayout() {
       <Stack.Screen
         name="details"
         options={{
-          title: "ODP Information",
+          title: `ODP ${name}`,
           headerRight: () => (
             <Menu
               visible={moreMenuVisible}
@@ -64,8 +85,14 @@ export default function RootLayout() {
                 backgroundColor: "white",
               }}
             >
-              {renderEditIcon()}
-              <Menu.Item title="Logout" onPress={() => signOut()} />
+              {renderDynamicOptions()}
+              <Menu.Item
+                title="Logout"
+                onPress={() => {
+                  _handleMore();
+                  signOut();
+                }}
+              />
             </Menu>
           ),
           animation: "slide_from_bottom",
