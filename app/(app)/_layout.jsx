@@ -100,6 +100,7 @@ export default function RootLayout() {
         }}
       />
       <Stack.Screen name="edit/edit-information" options={{ title: "Edit ODP Information" }} />
+      <Stack.Screen name="edit/add-user" options={{ title: `Add User to ODP ${name}` }} />
     </Stack>
   );
 }
