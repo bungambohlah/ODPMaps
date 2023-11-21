@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { router, useGlobalSearchParams } from "expo-router";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 import { ActivityIndicator, Card, Snackbar } from "react-native-paper";
@@ -11,7 +11,7 @@ function Page() {
   const { name, snackMessage } = useGlobalSearchParams();
   const [information, setInformation] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const onDismissSnackBar = () => router.setParams({ snackMessage: "" });
 
