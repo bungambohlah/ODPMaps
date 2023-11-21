@@ -6,16 +6,13 @@ import { ActivityIndicator, Card, DataTable, Icon, MD3Colors, Snackbar } from "r
 const UPSTASH_URL = "https://apn1-frank-cowbird-33009.upstash.io";
 const UPSTASH_TOKEN =
   "AYDxASQgOWMxZjMwMWItODJkMS00MTg1LTliYjgtOTA5ZGU0OTE0NjA2ODVhODA3MWNhY2Q4NGRmZDhmNDI0NGRkMjViOWYxM2I=";
+const totalPorts = 16;
 
 function Page() {
   const { name, snackMessage } = useGlobalSearchParams();
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState({});
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const page = 0;
-  const itemsPerPage = 16;
-  const from = page * itemsPerPage;
-  const to = Math.min((page + 1) * itemsPerPage, users.length);
 
   const onDismissSnackBar = () => router.setParams({ snackMessage: "" });
 
@@ -36,8 +33,16 @@ function Page() {
         });
         const data = await response.json();
         if (!data.result) return;
-        const resultData = JSON.parse(data.result || "");
-        setUsers(resultData);
+        const resultData = JSON.parse(data.result || []);
+        if (resultData?.length) {
+          const reducedResult = resultData.reduce((previous, current) => {
+            if (!previous[current.port]) {
+              previous[current.port] = current;
+            }
+            return previous;
+          }, {});
+          setUsers(reducedResult);
+        }
       }
     } catch (error) {
       setUsers([]);
@@ -75,18 +80,31 @@ function Page() {
                   <DataTable.Title>#</DataTable.Title>
                 </DataTable.Header>
 
-                {users.slice(from, to).map((item) => (
-                  <DataTable.Row key={item.port}>
-                    <DataTable.Cell>{item.port}</DataTable.Cell>
-                    <DataTable.Cell>{item.customerID}</DataTable.Cell>
-                    <DataTable.Cell>{item.name}</DataTable.Cell>
-                    <DataTable.Cell>{item.status}</DataTable.Cell>
-                    <DataTable.Cell>
-                      <Icon source="pencil" color={MD3Colors.primary10} size={20} />
-                      <Icon source="trash-can" color={MD3Colors.error50} size={20} />
-                    </DataTable.Cell>
-                  </DataTable.Row>
-                ))}
+                {Array(totalPorts)
+                  .fill(null)
+                  .map((_, index) => {
+                    return users[index + 1] ? (
+                      <DataTable.Row key={users[index + 1].port}>
+                        <DataTable.Cell>{users[index + 1].port}</DataTable.Cell>
+                        <DataTable.Cell>{users[index + 1].customerID}</DataTable.Cell>
+                        <DataTable.Cell>{users[index + 1].name}</DataTable.Cell>
+                        <DataTable.Cell>{users[index + 1].status}</DataTable.Cell>
+                        <DataTable.Cell>
+                          <Icon source="pencil" color={MD3Colors.primary10} size={20} />
+                        </DataTable.Cell>
+                      </DataTable.Row>
+                    ) : (
+                      <DataTable.Row key={index + 1}>
+                        <DataTable.Cell>{index + 1}</DataTable.Cell>
+                        <DataTable.Cell></DataTable.Cell>
+                        <DataTable.Cell></DataTable.Cell>
+                        <DataTable.Cell>Available</DataTable.Cell>
+                        <DataTable.Cell>
+                          <Icon source="pencil" color={MD3Colors.primary10} size={20} />
+                        </DataTable.Cell>
+                      </DataTable.Row>
+                    );
+                  })}
               </DataTable>
             )}
           </View>
