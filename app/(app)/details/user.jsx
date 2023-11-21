@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { router, useGlobalSearchParams } from "expo-router";
-import { RefreshControl, ScrollView, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { ActivityIndicator, Card, DataTable, Icon, MD3Colors, Snackbar } from "react-native-paper";
 
 const UPSTASH_URL = "https://apn1-frank-cowbird-33009.upstash.io";
@@ -13,6 +13,8 @@ function Page() {
   const [users, setUsers] = useState({});
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const capitalizeFirstLetter = (string) => string.charAt(0).toUpperCase() + string.slice(1);
 
   const onDismissSnackBar = () => router.setParams({ snackMessage: "" });
 
@@ -88,9 +90,22 @@ function Page() {
                         <DataTable.Cell>{users[index + 1].port}</DataTable.Cell>
                         <DataTable.Cell>{users[index + 1].customerID}</DataTable.Cell>
                         <DataTable.Cell>{users[index + 1].name}</DataTable.Cell>
-                        <DataTable.Cell>{users[index + 1].status}</DataTable.Cell>
                         <DataTable.Cell>
-                          <Icon source="pencil" color={MD3Colors.primary10} size={20} />
+                          {users[index + 1].status
+                            ? capitalizeFirstLetter(users[index + 1].status)
+                            : ""}
+                        </DataTable.Cell>
+                        <DataTable.Cell>
+                          <Pressable
+                            onPress={() =>
+                              router.push({
+                                pathname: "/(app)/edit/edit-user",
+                                params: { name, user: JSON.stringify(users[index + 1]) },
+                              })
+                            }
+                          >
+                            <Icon source="pencil" color={MD3Colors.primary10} size={20} />
+                          </Pressable>
                         </DataTable.Cell>
                       </DataTable.Row>
                     ) : (
@@ -100,7 +115,24 @@ function Page() {
                         <DataTable.Cell></DataTable.Cell>
                         <DataTable.Cell>Available</DataTable.Cell>
                         <DataTable.Cell>
-                          <Icon source="pencil" color={MD3Colors.primary10} size={20} />
+                          <Pressable
+                            onPress={() =>
+                              router.push({
+                                pathname: "/(app)/edit/edit-user",
+                                params: {
+                                  name,
+                                  user: JSON.stringify({
+                                    port: index + 1,
+                                    customerID: "",
+                                    name: "",
+                                    status: "available",
+                                  }),
+                                },
+                              })
+                            }
+                          >
+                            <Icon source="pencil" color={MD3Colors.primary10} size={20} />
+                          </Pressable>
                         </DataTable.Cell>
                       </DataTable.Row>
                     );
