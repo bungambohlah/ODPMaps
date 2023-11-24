@@ -33,7 +33,7 @@ export default function RootLayout() {
             _handleMore();
             router.push({ pathname: "/(app)/edit/edit-information", params: { name } });
           }}
-          title={`Edit ODP ${name}`}
+          title={`Edit ODP Information ${name}`}
         />
       );
     }
@@ -85,6 +85,13 @@ export default function RootLayout() {
                 backgroundColor: "white",
               }}
             >
+              <Menu.Item
+                onPress={() => {
+                  _handleMore();
+                  router.push({ pathname: "/(app)/edit/edit-odp", params: { name } });
+                }}
+                title={`Edit ODP ${name}`}
+              />
               {renderDynamicOptions()}
               <Menu.Item
                 title="Logout"
@@ -102,6 +109,8 @@ export default function RootLayout() {
       <Stack.Screen name="edit/edit-information" options={{ title: "Edit ODP Information" }} />
       <Stack.Screen name="edit/add-user" options={{ title: `Add User to ODP ${name}` }} />
       <Stack.Screen name="edit/edit-user" options={{ title: `Edit User to ODP ${name}` }} />
+      <Stack.Screen name="edit/add-odp" options={{ title: `Add ODP Location` }} />
+      <Stack.Screen name="edit/edit-odp" options={{ title: `Edit ODP ${name} Location` }} />
     </Stack>
   );
 }

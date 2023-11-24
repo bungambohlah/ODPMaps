@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Mapbox from "@rnmapbox/maps";
-import { Appbar, Menu } from "react-native-paper";
+import { Appbar, Button, Menu, Snackbar } from "react-native-paper";
 import FAB from "../../components/FAB";
 import { useSession } from "../../hooks/ctx";
 
@@ -17,7 +17,7 @@ const UPSTASH_TOKEN =
 const DEFAULT_CENTER_COORDINATE = [112.74795609717692, -7.263394274153487];
 
 const App = () => {
-  const { name } = useGlobalSearchParams();
+  const { name, snackMessage } = useGlobalSearchParams();
   const [location, setLocation] = useState(null);
   const [permission, setPermission] = useState(false);
   const [annotations, setAnnotations] = useState({});
@@ -25,6 +25,8 @@ const App = () => {
   const [moreMenuVisible, setMoreMenuVisible] = useState(false);
   const camera = useRef(null);
   const { signOut } = useSession();
+
+  const onDismissSnackBar = () => router.setParams({ snackMessage: "" });
 
   function _handleMore() {
     setMoreMenuVisible(!moreMenuVisible);
@@ -45,24 +47,7 @@ const App = () => {
     setAnnotations(reducedLocationNames);
     return reducedLocationNames;
   };
-  const setAnnotationsAPI = async (reducedLocationNames) => {
-    for (const [key, value] of Object.entries(reducedLocationNames)) {
-      // TODO: value it will be coordinate that need to set
-      await fetch(
-        `${UPSTASH_URL}/set/${key}/${JSON.stringify([
-          location?.coords?.longitude,
-          location?.coords?.latitude,
-        ])}`,
-        {
-          headers: {
-            Authorization: `Bearer ${UPSTASH_TOKEN}`,
-          },
-        },
-      );
-    }
 
-    return reducedLocationNames;
-  };
   const getAnnotationsAPI = async (reducedLocationNames) => {
     for (const [key, value] of Object.entries(reducedLocationNames)) {
       const response = await fetch(`${UPSTASH_URL}/get/${key}`, {
@@ -95,7 +80,6 @@ const App = () => {
     if (!annotationsLoading && location) {
       setAnnotationsLoading(true);
       getAnnotationNamesAPI()
-        .then((reducedLocationNames) => setAnnotationsAPI(reducedLocationNames))
         .then((reducedLocationNames) => getAnnotationsAPI(reducedLocationNames))
         .catch((err) => console.error(err));
     }
@@ -179,8 +163,19 @@ const App = () => {
                     animationMode: "flyTo",
                   });
                 }}
+                customClassName="right-4 bg-blue-500 px-3 py-3 shadow-2xl shadow-blue-500 border-2 border-blue-700"
               >
                 <MaterialIcons name="my-location" size={38} color="white" />
+              </FAB>
+              <FAB
+                onPress={() => {
+                  router.push({ pathname: "/(app)/edit/add-odp" });
+                }}
+                customClassName="left-4 mb-2"
+              >
+                <Button icon="plus" mode="contained" buttonColor="black" textColor="#47b000">
+                  <Text className="text-white">Add ODP</Text>
+                </Button>
               </FAB>
             </>
           ) : (
@@ -188,6 +183,9 @@ const App = () => {
           )}
         </View>
       </View>
+      <Snackbar visible={snackMessage?.length || false} onDismiss={onDismissSnackBar}>
+        {snackMessage}
+      </Snackbar>
     </>
   );
 };
