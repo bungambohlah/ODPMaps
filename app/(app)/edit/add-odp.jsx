@@ -44,7 +44,9 @@ function Page() {
       const locationNames = await fetch(`${UPSTASH_URL}/get/locationNames`, opt);
       const data = await locationNames.json();
       let locationNamesResult = JSON.parse(data.result || "[]");
-      locationNamesResult.push(name);
+      if (locationNamesResult.indexOf(name) < 0) {
+        locationNamesResult.push(name);
+      }
       await fetch(`${UPSTASH_URL}/set/locationNames/${JSON.stringify(locationNamesResult)}`, opt);
 
       router.setParams({ snackMessage: `Successfully to add ODP ${ODPForm.odpId}.` });
