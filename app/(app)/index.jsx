@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Mapbox from "@rnmapbox/maps";
-import { Appbar, Button, Menu, Snackbar } from "react-native-paper";
+import { Appbar, Button, Menu, Snackbar, TextInput } from "react-native-paper";
 import { useAssets } from "expo-asset";
 import { Image } from "expo-image";
 import FAB from "../../components/FAB";
@@ -30,6 +30,7 @@ const App = () => {
   const { signOut } = useSession();
   const [assets, error] = useAssets([require("../../assets/green_marker.png")]);
   const [cameraPos, setCameraPos] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
 
   const onDismissSnackBar = () => router.setParams({ snackMessage: "" });
 
@@ -76,6 +77,15 @@ const App = () => {
       setAnnotationUsers((s) => ({ ...s, [key]: users }));
     }
   };
+
+  function searchODP() {
+    if (annotations[searchInput]) {
+      router.push({ pathname: "/details", params: { name: searchInput } });
+      setSearchInput("");
+    } else if (!annotations[searchInput]) {
+      router.setParams({ snackMessage: "ODP ID that you search is not found" });
+    }
+  }
 
   useEffect(() => {
     Mapbox.setTelemetryEnabled(false);
@@ -139,6 +149,40 @@ const App = () => {
           <View className="w-full h-full">
             {permission ? (
               <>
+                <View className="absolute z-[999999] top-2 right-2">
+                  <TextInput
+                    placeholder="Insert ODP ID"
+                    mode="outlined"
+                    dense
+                    value={searchInput}
+                    onChangeText={(val) => setSearchInput(val)}
+                    cursorColor="black"
+                    outlineColor="black"
+                    activeOutlineColor="black"
+                    style={{
+                      height: 32,
+                      width: 200,
+                      padding: 10,
+                      zIndex: 100,
+                      borderRadius: 10,
+                    }}
+                    right={
+                      <TextInput.Icon
+                        icon="magnify"
+                        color="black"
+                        style={{
+                          marginLeft: 24,
+                          paddingLeft: 8,
+                          borderLeftWidth: 3,
+                          borderLeftColor: "black",
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
+                        }}
+                        onPress={searchODP}
+                      />
+                    }
+                  />
+                </View>
                 <Mapbox.MapView
                   style={styles.map}
                   onCameraChanged={({ properties: { center } }) => setCameraPos(center)}
@@ -215,7 +259,11 @@ const App = () => {
           </View>
         </View>
       ) : null}
-      <Snackbar visible={snackMessage?.length || false} onDismiss={onDismissSnackBar}>
+      <Snackbar
+        visible={snackMessage?.length || false}
+        onDismiss={onDismissSnackBar}
+        duration={2000}
+      >
         {snackMessage}
       </Snackbar>
     </>
