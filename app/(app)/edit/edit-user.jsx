@@ -42,8 +42,7 @@ function Page() {
       // get list of users by ODP first
       const response = await fetch(`${UPSTASH_URL}/get/${name}-Users`, opt);
       const data = await response.json();
-      if (!data.result) return;
-      let resultData = JSON.parse(data.result || []);
+      let resultData = JSON.parse(data.result || "[]");
       const userIndex = resultData.findIndex((x) => x.port === user.port);
       if (resultData[userIndex]) {
         resultData[userIndex] = user;

@@ -43,7 +43,7 @@ function Page() {
     try {
       const response = await fetch(`${UPSTASH_URL}/get/${name}-Users`, opt);
       const data = await response.json();
-      const resultData = JSON.parse(data.result || []);
+      const resultData = JSON.parse(data.result || "[]");
       const reducedResult = resultData.reduce((previous, current) => {
         if (!previous[current.port]) {
           previous[current.port] = current;
@@ -70,7 +70,7 @@ function Page() {
       const response = await fetch(`${UPSTASH_URL}/get/${name}-Users`, opt);
       const data = await response.json();
       if (!data.result) return;
-      let resultData = JSON.parse(data.result || []);
+      let resultData = JSON.parse(data.result || "[]");
       // add user into current existing list of users
       resultData.push(user);
 

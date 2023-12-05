@@ -35,7 +35,7 @@ function Page() {
         });
         const data = await response.json();
         if (!data.result) return;
-        const resultData = JSON.parse(data.result || []);
+        const resultData = JSON.parse(data.result || "[]");
         if (resultData?.length) {
           const reducedResult = resultData.reduce((previous, current) => {
             if (!previous[current.port]) {
