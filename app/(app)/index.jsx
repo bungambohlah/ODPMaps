@@ -5,6 +5,8 @@ import { View, Text, StyleSheet } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Mapbox from "@rnmapbox/maps";
 import { Appbar, Button, Menu, Snackbar } from "react-native-paper";
+import { useAssets } from "expo-asset";
+import { Image } from "expo-image";
 import FAB from "../../components/FAB";
 import { useSession } from "../../hooks/ctx";
 
@@ -21,10 +23,13 @@ const App = () => {
   const [location, setLocation] = useState(null);
   const [permission, setPermission] = useState(false);
   const [annotations, setAnnotations] = useState({});
+  const [annotationUsers, setAnnotationUsers] = useState({});
   const [annotationsLoading, setAnnotationsLoading] = useState(false);
   const [moreMenuVisible, setMoreMenuVisible] = useState(false);
   const camera = useRef(null);
   const { signOut } = useSession();
+  const [assets, error] = useAssets([require("../../assets/green_marker.png")]);
+  const [cameraPos, setCameraPos] = useState(null);
 
   const onDismissSnackBar = () => router.setParams({ snackMessage: "" });
 
@@ -50,6 +55,7 @@ const App = () => {
 
   const getAnnotationsAPI = async (reducedLocationNames) => {
     for (const [key, value] of Object.entries(reducedLocationNames)) {
+      // get annotation coordinates
       const response = await fetch(`${UPSTASH_URL}/get/${key}`, {
         headers: {
           Authorization: `Bearer ${UPSTASH_TOKEN}`,
@@ -58,6 +64,16 @@ const App = () => {
       const data = await response.json();
       const coords = JSON.parse(data.result || "[]");
       setAnnotations((s) => ({ ...s, [key]: coords }));
+
+      // get annotation users
+      const resUsers = await fetch(`${UPSTASH_URL}/get/${key}-Users`, {
+        headers: {
+          Authorization: `Bearer ${UPSTASH_TOKEN}`,
+        },
+      });
+      const dataUsers = await resUsers.json();
+      const users = JSON.parse(dataUsers.result || "[]");
+      setAnnotationUsers((s) => ({ ...s, [key]: users }));
     }
   };
 
@@ -117,72 +133,88 @@ const App = () => {
           ),
         }}
       />
-      <View className="flex items-center justify-center">
-        <StatusBar backgroundColor="blue" />
-        <View className="w-full h-full">
-          {permission ? (
-            <>
-              <Mapbox.MapView style={styles.map}>
-                <Mapbox.UserLocation
-                  onUpdate={(newLocation) => setLocation(newLocation)}
-                  showsUserHeadingIndicator={true}
-                  minDisplacement={5}
-                />
-                <Mapbox.Camera
-                  ref={camera}
-                  centerCoordinate={DEFAULT_CENTER_COORDINATE}
-                  zoomLevel={16}
-                />
-                {Object.entries(annotations)?.map(([name, coords], idx) => (
-                  <Fragment key={idx}>
-                    {Array.isArray(coords) && coords.length ? (
-                      <Mapbox.PointAnnotation
-                        key={idx}
-                        id={`odp-${idx}`}
-                        coordinate={coords}
-                        title={name}
-                        selected
-                        onSelected={() => {
-                          router.push({
-                            params: { name },
-                            pathname: "/details",
-                          });
-                        }}
-                      />
-                    ) : null}
-                  </Fragment>
-                ))}
-              </Mapbox.MapView>
-              <FAB
-                onPress={() => {
-                  // setLocation({ coords: { latitude: 0, longitude: 0 } });
-                  camera.current?.setCamera({
-                    centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
-                    zoomLevel: 16,
-                    animationDuration: 1000,
-                    animationMode: "flyTo",
-                  });
-                }}
-                customClassName="right-4 bg-blue-500 px-3 py-3 shadow-2xl shadow-blue-500 border-2 border-blue-700"
-              >
-                <MaterialIcons name="my-location" size={38} color="white" />
-              </FAB>
-              <FAB
-                onPress={() => {
-                  router.push({ pathname: "/(app)/edit/add-odp" });
-                }}
-                customClassName="left-4 mb-2"
-              >
-                <Button icon="plus" mode="contained" buttonColor="black" textColor="#47b000">
-                  <Text className="text-white">Add ODP</Text>
-                </Button>
-              </FAB>
-            </>
-          ) : (
-            <Text>Please, enable location permissions</Text>
-          )}
+      {assets?.length ? (
+        <View className="flex items-center justify-center">
+          <StatusBar backgroundColor="blue" />
+          <View className="w-full h-full">
+            {permission ? (
+              <>
+                <Mapbox.MapView
+                  style={styles.map}
+                  onCameraChanged={({ properties: { center } }) => setCameraPos(center)}
+                >
+                  <Mapbox.UserLocation
+                    onUpdate={(newLocation) => setLocation(newLocation)}
+                    showsUserHeadingIndicator={true}
+                    minDisplacement={5}
+                  />
+                  <Mapbox.Camera
+                    ref={camera}
+                    centerCoordinate={DEFAULT_CENTER_COORDINATE}
+                    zoomLevel={16}
+                  />
+                  {Object.entries(annotations)?.map(([name, coords], idx) => (
+                    <Fragment key={idx}>
+                      {Array.isArray(coords) && coords.length ? (
+                        <>
+                          <Mapbox.PointAnnotation
+                            key={idx}
+                            id={`odp-${idx}`}
+                            coordinate={coords}
+                            title={name}
+                            selected
+                            onSelected={() => {
+                              router.push({
+                                params: { name },
+                                pathname: "/details",
+                              });
+                            }}
+                          >
+                            {annotationUsers[name]?.length === 16 ? (
+                              <View className="w-20 h-20">
+                                <Image source={assets[0].uri} />
+                              </View>
+                            ) : null}
+                          </Mapbox.PointAnnotation>
+                        </>
+                      ) : null}
+                    </Fragment>
+                  ))}
+                </Mapbox.MapView>
+                <FAB
+                  onPress={() => {
+                    // setLocation({ coords: { latitude: 0, longitude: 0 } });
+                    camera.current?.setCamera({
+                      centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
+                      zoomLevel: 16,
+                      animationDuration: 1000,
+                      animationMode: "flyTo",
+                    });
+                  }}
+                  customClassName="right-4 bg-blue-500 px-3 py-3 shadow-2xl shadow-blue-500 border-2 border-blue-700"
+                >
+                  <MaterialIcons name="my-location" size={38} color="white" />
+                </FAB>
+                <FAB
+                  onPress={() => {
+                    router.push({
+                      params: { coords: JSON.stringify(cameraPos) },
+                      pathname: "/(app)/edit/add-odp",
+                    });
+                  }}
+                  customClassName="left-4 mb-2"
+                >
+                  <Button icon="plus" mode="contained" buttonColor="black" textColor="#47b000">
+                    <Text className="text-white">Add ODP</Text>
+                  </Button>
+                </FAB>
+              </>
+            ) : (
+              <Text>Please, enable location permissions</Text>
+            )}
+          </View>
         </View>
-      </View>
+      ) : null}
       <Snackbar visible={snackMessage?.length || false} onDismiss={onDismissSnackBar}>
         {snackMessage}
       </Snackbar>

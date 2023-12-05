@@ -1,8 +1,8 @@
 import Mapbox from "@rnmapbox/maps";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
-import { Button, Card, Icon, TextInput } from "react-native-paper";
+import { Button, Card, TextInput } from "react-native-paper";
 
 Mapbox.setAccessToken(
   "pk.eyJ1IjoiYnVuZ2FtYm9obGFoIiwiYSI6ImNsbjkzOHc1dDAzNm4ya253aXh6a2tjbG8ifQ.iwEYr3cMfHciuU4LUuu9aw",
@@ -14,9 +14,10 @@ const DEFAULT_CENTER_COORDINATE = [112.74795609717692, -7.263394274153487];
 const opt = { headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` } };
 
 function Page() {
+  const { coords } = useLocalSearchParams();
   const [permission, setPermission] = useState(false);
   const [location, setLocation] = useState(null);
-  const [pointPosition, setPointPosition] = useState(null);
+  const [pointPosition, setPointPosition] = useState(coords ? JSON.parse(coords) : null);
   const [ODPHide, setODPHide] = useState(false);
   const [ODPForm, setODPForm] = useState({
     odpId: "",
@@ -88,7 +89,9 @@ function Page() {
                 <Mapbox.Camera
                   ref={camera}
                   centerCoordinate={
-                    location?.coords
+                    pointPosition
+                      ? pointPosition
+                      : location?.coords
                       ? [location?.coords?.longitude, location?.coords?.latitude]
                       : null
                   }
