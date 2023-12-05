@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef, Fragment } from "react";
 import { Stack, router, useGlobalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Mapbox from "@rnmapbox/maps";
-import { Appbar, Button, Menu, Snackbar, TextInput } from "react-native-paper";
+import { ActivityIndicator, Appbar, Button, Menu, Snackbar, TextInput } from "react-native-paper";
 import { useAssets } from "expo-asset";
 import { Image } from "expo-image";
 import FAB from "../../components/FAB";
@@ -25,6 +25,7 @@ const App = () => {
   const [annotations, setAnnotations] = useState({});
   const [annotationUsers, setAnnotationUsers] = useState({});
   const [annotationsLoading, setAnnotationsLoading] = useState(false);
+  const [annotationsLoaded, setAnnotationsLoaded] = useState(false);
   const [moreMenuVisible, setMoreMenuVisible] = useState(false);
   const camera = useRef(null);
   const { signOut } = useSession();
@@ -76,6 +77,8 @@ const App = () => {
       const users = JSON.parse(dataUsers.result || "[]");
       setAnnotationUsers((s) => ({ ...s, [key]: users }));
     }
+
+    return Promise.resolve();
   };
 
   function searchODP() {
@@ -105,9 +108,11 @@ const App = () => {
 
     if (!annotationsLoading && location) {
       setAnnotationsLoading(true);
+      setAnnotationsLoaded(false);
       getAnnotationNamesAPI()
         .then((reducedLocationNames) => getAnnotationsAPI(reducedLocationNames))
-        .catch((err) => console.error(err));
+        .catch((err) => console.error(err))
+        .finally(() => setAnnotationsLoaded(true));
     }
   }, [location, annotationsLoading]);
 
@@ -197,33 +202,36 @@ const App = () => {
                     centerCoordinate={DEFAULT_CENTER_COORDINATE}
                     zoomLevel={16}
                   />
-                  {Object.entries(annotations)?.map(([name, coords], idx) => (
-                    <Fragment key={idx}>
-                      {Array.isArray(coords) && coords.length ? (
-                        <>
-                          <Mapbox.PointAnnotation
-                            key={idx}
-                            id={`odp-${idx}`}
-                            coordinate={coords}
-                            title={name}
-                            selected
-                            onSelected={() => {
-                              router.push({
-                                params: { name },
-                                pathname: "/details",
-                              });
-                            }}
-                          >
-                            {annotationUsers[name]?.length === 16 ? (
-                              <View className="w-20 h-20">
-                                <Image source={assets[0].uri} />
-                              </View>
-                            ) : null}
-                          </Mapbox.PointAnnotation>
-                        </>
-                      ) : null}
-                    </Fragment>
-                  ))}
+                  {annotationsLoaded &&
+                    Object.entries(annotations)?.map(([name, coords], idx) => (
+                      <Fragment key={idx}>
+                        {Array.isArray(coords) && coords.length ? (
+                          <>
+                            <Mapbox.PointAnnotation
+                              key={idx}
+                              id={`odp-${idx}`}
+                              coordinate={coords}
+                              title={name}
+                              selected
+                              onSelected={() => {
+                                router.push({
+                                  params: { name },
+                                  pathname: "/details",
+                                });
+                              }}
+                            >
+                              {annotationUsers[name].length === 16 && assets ? (
+                                <Image
+                                  source={assets[0]}
+                                  style={{ width: 32, height: 32 }}
+                                  contentFit="contain"
+                                />
+                              ) : null}
+                            </Mapbox.PointAnnotation>
+                          </>
+                        ) : null}
+                      </Fragment>
+                    ))}
                 </Mapbox.MapView>
                 <FAB
                   onPress={() => {
@@ -258,7 +266,19 @@ const App = () => {
             )}
           </View>
         </View>
-      ) : null}
+      ) : (
+        <ActivityIndicator
+          color="black"
+          size="large"
+          style={{
+            display: "absolute",
+            transform: [
+              { translateX: -Dimensions.get("window").width * 0 },
+              { translateY: Dimensions.get("window").height * 0.45 },
+            ],
+          }}
+        />
+      )}
       <Snackbar
         visible={snackMessage?.length || false}
         onDismiss={onDismissSnackBar}
