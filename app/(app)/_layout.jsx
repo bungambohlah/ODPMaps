@@ -25,19 +25,6 @@ export default function RootLayout() {
       [];
     const tabIndex = selectedPage?.state?.index || 0;
 
-    // render edit ODP Information
-    if (tabIndex === 0) {
-      return (
-        <Menu.Item
-          onPress={() => {
-            _handleMore();
-            router.push({ pathname: "/(app)/edit/edit-information", params: { name } });
-          }}
-          title={`Edit ODP Information ${name}`}
-        />
-      );
-    }
-
     // render add ODP User
     if (tabIndex === 1) {
       return (
@@ -106,7 +93,6 @@ export default function RootLayout() {
           gestureDirection: "vertical",
         }}
       />
-      <Stack.Screen name="edit/edit-information" options={{ title: "Edit ODP Information" }} />
       <Stack.Screen name="edit/add-user" options={{ title: `Add User to ODP ${name}` }} />
       <Stack.Screen name="edit/edit-user" options={{ title: `Edit User to ODP ${name}` }} />
       <Stack.Screen name="edit/add-odp" options={{ title: `Add ODP Location` }} />
