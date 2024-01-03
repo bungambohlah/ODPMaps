@@ -182,7 +182,7 @@ function Page() {
                         }
                       />
                       <View className="flex flex-row items-center w-full gap-2 justify-evenly">
-                        <Button mode="contained" buttonColor="black">
+                        <Button mode="contained" buttonColor="black" onPress={() => router.back()}>
                           Exit
                         </Button>
                         <Button
