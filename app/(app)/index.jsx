@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useRef, Fragment } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Stack, router, useGlobalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet, Dimensions, Image } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Mapbox from "@rnmapbox/maps";
 import { ActivityIndicator, Appbar, Button, Menu, Snackbar, TextInput } from "react-native-paper";
 import { useAssets } from "expo-asset";
-import { Image } from "expo-image";
+// import { Image } from "expo-image";
 import FAB from "../../components/FAB";
 import { useSession } from "../../hooks/ctx";
 
@@ -32,6 +32,7 @@ const App = () => {
   const [assets, error] = useAssets([require("../../assets/green_marker.png")]);
   const [cameraPos, setCameraPos] = useState(null);
   const [searchInput, setSearchInput] = useState("");
+  const commonIcon = require("../../assets/green_marker.png");
 
   const onDismissSnackBar = () => router.setParams({ snackMessage: "" });
 
@@ -83,7 +84,11 @@ const App = () => {
 
   function searchODP() {
     if (annotations[searchInput]) {
-      router.push({ pathname: "/details", params: { name: searchInput } });
+      const [longitude, latitude] = annotations[searchInput];
+      camera.current?.setCamera({
+        centerCoordinate: [longitude, latitude],
+        zoomLevel: 16,
+      });
       setSearchInput("");
     } else if (!annotations[searchInput]) {
       router.setParams({ snackMessage: "ODP ID that you search is not found" });
@@ -204,33 +209,63 @@ const App = () => {
                   />
                   {annotationsLoaded &&
                     Object.entries(annotations)?.map(([name, coords], idx) => (
-                      <Fragment key={idx}>
+                      <View key={idx}>
                         {Array.isArray(coords) && coords.length ? (
                           <>
                             <Mapbox.PointAnnotation
-                              key={idx}
-                              id={`odp-${idx}`}
+                              key={`${idx}-text`}
+                              id={`odp-text-${idx}`}
                               coordinate={coords}
-                              title={name}
                               selected
-                              onSelected={() => {
-                                router.push({
-                                  params: { name },
-                                  pathname: "/details",
-                                });
-                              }}
                             >
-                              {annotationUsers[name].length === 16 && assets ? (
-                                <Image
-                                  source={assets[0]}
-                                  style={{ width: 32, height: 32 }}
-                                  contentFit="contain"
-                                />
-                              ) : null}
+                              <Text>{name}</Text>
                             </Mapbox.PointAnnotation>
+                            {annotationUsers[name].length === 16 &&
+                            assets?.length &&
+                            assets[0]?.downloaded ? (
+                              <Mapbox.PointAnnotation
+                                key={idx}
+                                id={`odp-${idx}`}
+                                coordinate={coords}
+                                title={name}
+                                selected
+                                onSelected={() => {
+                                  router.push({
+                                    params: { name },
+                                    pathname: "/details",
+                                  });
+                                }}
+                              >
+                                <View style={{ backgroundColor: "transparent" }}>
+                                  <Image
+                                    style={{
+                                      width: 32,
+                                      height: 32,
+                                      objectFit: "contain",
+                                      marginBottom: 32,
+                                    }}
+                                    source={commonIcon}
+                                  />
+                                </View>
+                              </Mapbox.PointAnnotation>
+                            ) : (
+                              <Mapbox.PointAnnotation
+                                key={idx}
+                                id={`odp-${idx}`}
+                                coordinate={coords}
+                                title={name}
+                                selected
+                                onSelected={() => {
+                                  router.push({
+                                    params: { name },
+                                    pathname: "/details",
+                                  });
+                                }}
+                              />
+                            )}
                           </>
                         ) : null}
-                      </Fragment>
+                      </View>
                     ))}
                 </Mapbox.MapView>
                 <FAB
