@@ -6,9 +6,10 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Mapbox from "@rnmapbox/maps";
 import { ActivityIndicator, Appbar, Button, Menu, Snackbar, TextInput } from "react-native-paper";
 import { useAssets } from "expo-asset";
-// import { Image } from "expo-image";
+import * as turf from "@turf/turf";
 import FAB from "../../components/FAB";
 import { useSession } from "../../hooks/ctx";
+import { calculateDistance } from "../../lib/calculateDistance";
 
 Mapbox.setAccessToken(
   "pk.eyJ1IjoiYnVuZ2FtYm9obGFoIiwiYSI6ImNsbjkzOHc1dDAzNm4ya253aXh6a2tjbG8ifQ.iwEYr3cMfHciuU4LUuu9aw",
@@ -20,7 +21,7 @@ const DEFAULT_CENTER_COORDINATE = [112.74795609717692, -7.263394274153487];
 
 const App = () => {
   const { name, snackMessage } = useGlobalSearchParams();
-  const [location, setLocation] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
   const [permission, setPermission] = useState(false);
   const [annotations, setAnnotations] = useState({});
   const [annotationUsers, setAnnotationUsers] = useState({});
@@ -66,7 +67,17 @@ const App = () => {
       });
       const data = await response.json();
       const coords = JSON.parse(data.result || "[]");
-      setAnnotations((s) => ({ ...s, [key]: coords }));
+
+      if (coords.length) {
+        const distance = calculateDistance(userLocation?.coords, {
+          longitude: coords[0],
+          latitude: coords[1],
+        });
+        // check nearby 5km in meters
+        if (distance <= 5000) {
+          setAnnotations((s) => ({ ...s, [key]: coords }));
+        }
+      }
 
       // get annotation users
       const resUsers = await fetch(`${UPSTASH_URL}/get/${key}-Users`, {
@@ -95,23 +106,36 @@ const App = () => {
     }
   }
 
+  // Function to create a circle with a specified radius and number of steps (vertices)
+  const createCircle = (center, radiusInKm, steps = 64) => {
+    const options = { steps, units: "kilometers" };
+    const circle = turf.circle(center, radiusInKm, options);
+
+    // Ensure clockwise orientation for the polygon ring
+    const clockwiseCircle = turf.booleanClockwise(circle.geometry.coordinates[0])
+      ? circle.geometry.coordinates[0]
+      : circle.geometry.coordinates[0].reverse();
+
+    return [clockwiseCircle];
+  };
+
   useEffect(() => {
     Mapbox.setTelemetryEnabled(false);
     Mapbox.requestAndroidLocationPermissions().then((access) => {
       if (access) setPermission(access);
     });
     camera.current?.setCamera({
-      centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
+      centerCoordinate: [userLocation?.coords?.longitude, userLocation?.coords?.latitude],
     });
   }, []);
 
   useEffect(() => {
     camera.current?.setCamera({
-      centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
+      centerCoordinate: [userLocation?.coords?.longitude, userLocation?.coords?.latitude],
       zoomLevel: 16,
     });
 
-    if (!annotationsLoading && location) {
+    if (!annotationsLoading && userLocation) {
       setAnnotationsLoading(true);
       setAnnotationsLoaded(false);
       getAnnotationNamesAPI()
@@ -119,13 +143,18 @@ const App = () => {
         .catch((err) => console.error(err))
         .finally(() => setAnnotationsLoaded(true));
     }
-  }, [location, annotationsLoading]);
+  }, [userLocation, annotationsLoading]);
 
   useEffect(() => {
     if (name) {
       setAnnotationsLoading(false);
     }
   }, [name]);
+
+  useEffect(() => {
+    if (userLocation) {
+    }
+  }, [cameraPos, userLocation]);
 
   return (
     <>
@@ -196,9 +225,12 @@ const App = () => {
                 <Mapbox.MapView
                   style={styles.map}
                   onCameraChanged={({ properties: { center } }) => setCameraPos(center)}
+                  logoEnabled={false}
+                  attributionEnabled={false}
+                  styleURL={Mapbox.StyleURL.Street}
                 >
                   <Mapbox.UserLocation
-                    onUpdate={(newLocation) => setLocation(newLocation)}
+                    onUpdate={(newLocation) => setUserLocation(newLocation)}
                     showsUserHeadingIndicator={true}
                     minDisplacement={5}
                   />
@@ -207,6 +239,32 @@ const App = () => {
                     centerCoordinate={DEFAULT_CENTER_COORDINATE}
                     zoomLevel={16}
                   />
+
+                  {/* Circle around user location */}
+                  {userLocation ? (
+                    <Mapbox.ShapeSource
+                      id="circleSource"
+                      shape={{
+                        type: "Feature",
+                        geometry: {
+                          type: "Polygon",
+                          coordinates: createCircle(
+                            [userLocation?.coords?.longitude, userLocation?.coords?.latitude],
+                            5,
+                            64,
+                          ),
+                        },
+                      }}
+                    >
+                      <Mapbox.FillLayer
+                        id="fillLayer"
+                        style={{
+                          fillColor: "rgba(0, 122, 255, 0.2)", // Transparent blue color
+                        }}
+                      />
+                    </Mapbox.ShapeSource>
+                  ) : null}
+
                   {annotationsLoaded &&
                     Object.entries(annotations)?.map(([name, coords], idx) => (
                       <View key={idx}>
@@ -272,7 +330,10 @@ const App = () => {
                   onPress={() => {
                     // setLocation({ coords: { latitude: 0, longitude: 0 } });
                     camera.current?.setCamera({
-                      centerCoordinate: [location?.coords?.longitude, location?.coords?.latitude],
+                      centerCoordinate: [
+                        userLocation?.coords?.longitude,
+                        userLocation?.coords?.latitude,
+                      ],
                       zoomLevel: 16,
                       animationDuration: 1000,
                       animationMode: "flyTo",
