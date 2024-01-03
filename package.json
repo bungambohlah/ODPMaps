@@ -11,6 +11,7 @@
     "@expo/vector-icons": "^13.0.0",
     "@react-navigation/native": "^6.0.2",
     "@rnmapbox/maps": "^10.0.15",
+    "@turf/turf": "^6.5.0",
     "@types/react": "~18.2.14",
     "expo": "~49.0.13",
     "expo-asset": "~8.10.1",
