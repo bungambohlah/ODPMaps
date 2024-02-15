@@ -3,9 +3,9 @@ import { router, useGlobalSearchParams } from "expo-router";
 import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { ActivityIndicator, Card, DataTable, Icon, MD3Colors, Snackbar } from "react-native-paper";
 
-const UPSTASH_URL = "https://apn1-frank-cowbird-33009.upstash.io";
+const UPSTASH_URL = "https://adapting-wildcat-40465.upstash.io";
 const UPSTASH_TOKEN =
-  "AYDxASQgOWMxZjMwMWItODJkMS00MTg1LTliYjgtOTA5ZGU0OTE0NjA2ODVhODA3MWNhY2Q4NGRmZDhmNDI0NGRkMjViOWYxM2I=";
+  "AZ4RACQgMmE4NTFjNzYtZTg0MS00NDk3LWIyZTEtYWZlODAwMGE2ZDVkMTc4Nzk5ZmM2ZTFlNGQ1NzllMjU5ODc1ZDc4OTEyZDk=";
 const totalPorts = 16;
 
 function Page() {

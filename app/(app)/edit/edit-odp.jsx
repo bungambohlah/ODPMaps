@@ -7,9 +7,9 @@ import { Button, Card, TextInput } from "react-native-paper";
 Mapbox.setAccessToken(
   "pk.eyJ1IjoiYnVuZ2FtYm9obGFoIiwiYSI6ImNsbjkzOHc1dDAzNm4ya253aXh6a2tjbG8ifQ.iwEYr3cMfHciuU4LUuu9aw",
 );
-const UPSTASH_URL = "https://apn1-frank-cowbird-33009.upstash.io";
+const UPSTASH_URL = "https://adapting-wildcat-40465.upstash.io";
 const UPSTASH_TOKEN =
-  "AYDxASQgOWMxZjMwMWItODJkMS00MTg1LTliYjgtOTA5ZGU0OTE0NjA2ODVhODA3MWNhY2Q4NGRmZDhmNDI0NGRkMjViOWYxM2I=";
+  "AZ4RACQgMmE4NTFjNzYtZTg0MS00NDk3LWIyZTEtYWZlODAwMGE2ZDVkMTc4Nzk5ZmM2ZTFlNGQ1NzllMjU5ODc1ZDc4OTEyZDk=";
 const opt = { headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` } };
 
 function Page() {
